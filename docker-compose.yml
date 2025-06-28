@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: soa-tickets-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: soa_tickets
+      MYSQL_USER: tickets_user
+      MYSQL_PASSWORD: tickets_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database-setup.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - tickets-network
+
+  # SOA Tickets API
+  api:
+    build: .
+    container_name: soa-tickets-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: tickets_user
+      DB_PASSWORD: tickets_password
+      DB_NAME: soa_tickets
+      SWAGGER_SERVER_URL: http://localhost:2225/api
+    ports:
+      - "2225:2225"
+    depends_on:
+      - mysql
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - tickets-network
+
+volumes:
+  mysql_data:
+
+networks:
+  tickets-network:
+    driver: bridge 
