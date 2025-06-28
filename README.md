@@ -1,17 +1,18 @@
-# 🎫 SOA Tickets API - Sistema de Gestión de Tickets de Eventos
+# 🛒 SOA Sales API - Sistema de Gestión de Ventas
 
 ## 📋 Descripción
 
-SOA Tickets API es un sistema especializado de gestión de tickets para eventos, construido con Node.js, TypeScript, TypeORM y MySQL. El sistema permite la creación, gestión y validación de tickets únicos para diferentes ubicaciones de eventos.
+SOA Sales API es un sistema especializado de gestión de ventas y sus detalles para una arquitectura SOA, construido con Node.js, TypeScript, TypeORM y MySQL. El sistema permite la creación, gestión y seguimiento de ventas con múltiples detalles asociados.
 
 ## 🚀 Características Principales
 
-- **Generación automática de códigos únicos**: Cada ticket tiene un código único de 8 caracteres alfanuméricos
-- **Gestión completa de tickets**: CRUD completo con soft delete
-- **Validación de tickets**: Sistema de uso de tickets con validaciones
-- **Generación masiva**: Creación de múltiples tickets para un evento
-- **Estadísticas**: Reportes de uso y estado de tickets
+- **Gestión completa de ventas**: CRUD completo con soft delete
+- **Detalles de venta**: Manejo de múltiples detalles por venta
+- **Estadísticas avanzadas**: Reportes de ventas y métricas
+- **Paginación eficiente**: Consultas optimizadas con paginación
+- **Validación robusta**: Validación de datos con class-validator
 - **API RESTful**: Endpoints bien documentados con Swagger
+- **Arquitectura SOA**: Microservicio independiente para ventas
 - **Documentación completa**: Swagger UI integrado
 
 ## 🏗️ Arquitectura
@@ -37,7 +38,7 @@ src/
 
 ### Prerrequisitos
 
-- Node.js (v16 o superior)
+- Node.js (v18 o superior)
 - MySQL (v8.0 o superior)
 - npm o yarn
 
@@ -46,7 +47,7 @@ src/
 1. **Clonar el repositorio**
    ```bash
    git clone <repository-url>
-   cd SOA-TICKETS
+   cd SOA-SALES
    ```
 
 2. **Instalar dependencias**
@@ -62,10 +63,11 @@ src/
    DB_PORT=3306
    DB_USERNAME=your_username
    DB_PASSWORD=your_password
-   DB_NAME=soa_tickets
+   DB_NAME=soa_sales
 
    # Server Configuration
-   SWAGGER_SERVER_URL=http://localhost:2225/api
+   PORT=2226
+   SWAGGER_SERVER_URL=http://localhost:2226/api
    ```
 
 4. **Configurar la base de datos**
@@ -83,94 +85,106 @@ src/
 
 ### Endpoints Disponibles
 
+#### Gestión de Ventas
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| `POST` | `/api/tickets` | Crear un nuevo ticket |
-| `POST` | `/api/tickets/generate` | Generar múltiples tickets |
-| `PUT` | `/api/tickets` | Actualizar un ticket |
-| `POST` | `/api/tickets/use` | Usar un ticket por código |
-| `POST` | `/api/tickets/{id}/use` | Usar un ticket por ID |
-| `GET` | `/api/tickets` | Obtener tickets paginados |
-| `GET` | `/api/tickets/all` | Obtener todos los tickets |
-| `GET` | `/api/tickets/active` | Obtener tickets activos |
-| `GET` | `/api/tickets/unused` | Obtener tickets no utilizados |
-| `GET` | `/api/tickets/used` | Obtener tickets utilizados |
-| `GET` | `/api/tickets/statistics` | Obtener estadísticas |
-| `GET` | `/api/tickets/{id}` | Obtener ticket por ID |
-| `GET` | `/api/tickets/code/{code}` | Obtener ticket por código |
-| `GET` | `/api/tickets/event-location/{eventLocationId}` | Obtener tickets por ubicación |
-| `POST` | `/api/tickets/{id}/activate` | Activar un ticket |
-| `POST` | `/api/tickets/{id}/deactivate` | Desactivar un ticket |
-| `DELETE` | `/api/tickets/{id}` | Eliminar un ticket (soft delete) |
+| `POST` | `/api/sales` | Crear una nueva venta con detalles |
+| `PUT` | `/api/sales` | Actualizar una venta existente |
+| `GET` | `/api/sales` | Obtener ventas paginadas |
+| `GET` | `/api/sales/all` | Obtener todas las ventas |
+| `GET` | `/api/sales/active` | Obtener ventas activas |
+| `GET` | `/api/sales/statistics` | Obtener estadísticas de ventas |
+| `GET` | `/api/sales/{id}` | Obtener venta por ID |
+| `GET` | `/api/sales/user/{userId}` | Obtener ventas por usuario |
+| `GET` | `/api/sales/partner/{partnerId}` | Obtener ventas por partner |
+| `DELETE` | `/api/sales/{id}/delete` | Eliminar una venta (soft delete) |
+| `POST` | `/api/sales/{id}/activate` | Activar una venta |
+| `POST` | `/api/sales/{id}/deactivate` | Desactivar una venta |
+| `POST` | `/api/sales/{id}/restore` | Restaurar una venta eliminada |
+
+#### Gestión de Detalles de Venta
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `PUT` | `/api/sales/details` | Actualizar un detalle de venta |
+| `GET` | `/api/sales/{saleId}/details` | Obtener detalles de una venta |
+| `GET` | `/api/sales/details/{id}` | Obtener detalle por ID |
+| `DELETE` | `/api/sales/details/{id}/delete` | Eliminar un detalle (soft delete) |
 
 ### Ejemplos de Uso
 
-#### Crear un ticket
+#### Crear una venta con detalles
 ```bash
-curl -X POST http://localhost:2225/api/tickets \
+curl -X POST http://localhost:2226/api/sales \
   -H "Content-Type: application/json" \
   -d '{
-    "eventLocationId": 1
+    "userId": 1,
+    "partnerId": 1,
+    "totalAmount": 150.00,
+    "saleDetails": [
+      {
+        "ticketId": 1,
+        "amount": 75.00
+      },
+      {
+        "ticketId": 2,
+        "amount": 75.00
+      }
+    ]
   }'
 ```
 
-#### Generar múltiples tickets
+#### Obtener ventas paginadas
 ```bash
-curl -X POST http://localhost:2225/api/tickets/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "eventLocationId": 1,
-    "quantity": 100
-  }'
-```
-
-#### Usar un ticket
-```bash
-curl -X POST http://localhost:2225/api/tickets/use \
-  -H "Content-Type: application/json" \
-  -d '{
-    "code": "ABC12345"
-  }'
+curl -X GET "http://localhost:2226/api/sales?page=1&items=10"
 ```
 
 #### Obtener estadísticas
 ```bash
-curl -X GET http://localhost:2225/api/tickets/statistics
+curl -X GET http://localhost:2226/api/sales/statistics
+```
+
+#### Actualizar un detalle de venta
+```bash
+curl -X PUT http://localhost:2226/api/sales/details \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 1,
+    "amount": 80.00
+  }'
 ```
 
 #### Health Check
 ```bash
-curl -X GET http://localhost:2225/api/health
+curl -X GET http://localhost:2226/api/health
 ```
 
 ## 📊 Estructura de la Base de Datos
 
-### Tabla `tbl_tickets`
+### Tabla `tbl_sales`
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
-| `ticket_id` | INT | ID único del ticket (AUTO_INCREMENT) |
-| `event_location_id` | INT | ID de la ubicación del evento |
-| `code` | VARCHAR(255) | Código único del ticket |
-| `used_at` | DATETIME | Fecha y hora de uso del ticket |
-| `is_used` | TINYINT | Indica si el ticket ha sido usado |
+| `sale_id` | INT | ID único de la venta (AUTO_INCREMENT) |
+| `user_id` | INT | ID del usuario (opcional) |
+| `partner_id` | INT | ID del partner (opcional) |
+| `total_amount` | DECIMAL(10,2) | Monto total de la venta |
 | `created_at` | DATETIME | Fecha de creación |
 | `updated_at` | DATETIME | Fecha de última actualización |
-| `is_active` | TINYINT | Indica si el ticket está activo |
-| `deleted` | TINYINT | Indica si el ticket está eliminado (soft delete) |
+| `is_active` | TINYINT | Indica si la venta está activa |
+| `deleted` | TINYINT | Indica si la venta está eliminada (soft delete) |
 
-### Tabla `tbl_event_locations`
+### Tabla `tbl_sale_details`
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
-| `event_location_id` | INT | ID único de la ubicación |
-| `name` | VARCHAR(255) | Nombre de la ubicación |
-| `address` | TEXT | Dirección de la ubicación |
-| `capacity` | INT | Capacidad de la ubicación |
+| `sale_detail_id` | INT | ID único del detalle (AUTO_INCREMENT) |
+| `sale_id` | INT | ID de la venta (FK) |
+| `ticket_id` | INT | ID del ticket asociado (opcional) |
+| `amount` | DECIMAL(10,2) | Monto del detalle |
 | `created_at` | DATETIME | Fecha de creación |
 | `updated_at` | DATETIME | Fecha de última actualización |
-| `is_active` | TINYINT | Indica si está activa |
-| `deleted` | TINYINT | Indica si está eliminada |
+| `is_active` | TINYINT | Indica si el detalle está activo |
+| `deleted` | TINYINT | Indica si el detalle está eliminado (soft delete) |
 
 ## 🔧 Configuración
 
@@ -182,8 +196,9 @@ curl -X GET http://localhost:2225/api/health
 | `DB_PORT` | Puerto de la base de datos | 3306 |
 | `DB_USERNAME` | Usuario de la base de datos | - |
 | `DB_PASSWORD` | Contraseña de la base de datos | - |
-| `DB_NAME` | Nombre de la base de datos | soa_tickets |
-| `SWAGGER_SERVER_URL` | URL del servidor para Swagger | http://localhost:2225/api |
+| `DB_NAME` | Nombre de la base de datos | soa_sales |
+| `PORT` | Puerto del servidor | 2226 |
+| `SWAGGER_SERVER_URL` | URL del servidor para Swagger | http://localhost:2226/api |
 
 ### Scripts Disponibles
 
@@ -202,42 +217,47 @@ curl -X GET http://localhost:2225/api/health
 
 La documentación interactiva de la API está disponible en:
 ```
-http://localhost:2225/api-docs
+http://localhost:2226/api-docs
 ```
 
 ### Esquemas de Datos
 
-#### CreateTicketDto
+#### CreateSaleDto
 ```typescript
 {
-  eventLocationId: number; // ID de la ubicación del evento
+  userId?: number;           // ID del usuario (opcional)
+  partnerId?: number;        // ID del partner (opcional)
+  totalAmount: number;       // Monto total de la venta
+  saleDetails: CreateSaleDetailDto[]; // Array de detalles
 }
 ```
 
-#### GenerateTicketsDto
+#### CreateSaleDetailDto
 ```typescript
 {
-  eventLocationId: number; // ID de la ubicación del evento
-  quantity: number;        // Cantidad de tickets a generar (1-1000)
+  ticketId?: number;         // ID del ticket (opcional)
+  amount: number;            // Monto del detalle
 }
 ```
 
-#### UseTicketDto
+#### UpdateSaleDto
 ```typescript
 {
-  code: string; // Código del ticket a usar
+  id: number;                // ID de la venta
+  userId?: number;           // ID del usuario
+  partnerId?: number;        // ID del partner
+  totalAmount?: number;      // Monto total
+  isActive?: boolean;        // Estado activo
 }
 ```
 
-#### UpdateTicketDto
+#### UpdateSaleDetailDto
 ```typescript
 {
-  id: number;                    // ID del ticket
-  eventLocationId?: number;      // ID de la ubicación del evento
-  code?: string;                 // Código único del ticket
-  isUsed?: boolean;              // Indica si el ticket ha sido usado
-  usedAt?: string;               // Fecha y hora de uso
-  isActive?: boolean;            // Indica si el ticket está activo
+  id: number;                // ID del detalle
+  ticketId?: number;         // ID del ticket
+  amount?: number;           // Monto del detalle
+  isActive?: boolean;        // Estado activo
 }
 ```
 
@@ -262,13 +282,34 @@ npm run build
 npm start
 ```
 
+### Docker
+```bash
+docker build -t soa-sales .
+docker run -p 2226:2226 soa-sales
+```
+
 ## 📝 Notas Importantes
 
-1. **Códigos únicos**: Los códigos de tickets se generan automáticamente con 8 caracteres alfanuméricos
-2. **Soft Delete**: Los tickets no se eliminan físicamente, se marcan como eliminados
-3. **Validaciones**: El sistema valida que los tickets no hayan sido usados previamente
-4. **Límites**: La generación masiva está limitada a 1000 tickets por operación
-5. **Relaciones**: Los tickets están relacionados con ubicaciones de eventos (`tbl_event_locations`)
+1. **Soft Delete**: Las ventas y detalles no se eliminan físicamente, se marcan como eliminados
+2. **Validaciones**: El sistema valida todos los datos de entrada con class-validator
+3. **Relaciones**: Las ventas pueden tener múltiples detalles asociados
+4. **Paginación**: Las consultas de listado incluyen paginación por defecto
+5. **Estadísticas**: El sistema proporciona métricas en tiempo real
+6. **Arquitectura SOA**: Este servicio es independiente y se integra con otros servicios
+
+## 🔄 Integración SOA
+
+Este servicio se integra con otros servicios de la arquitectura SOA:
+
+- **Servicio de Usuarios**: Referencia por `userId`
+- **Servicio de Partners**: Referencia por `partnerId`
+- **Servicio de Tickets**: Referencia por `ticketId` en detalles
+
+## 📖 Documentación Adicional
+
+- **Guía Completa**: `SALES_SERVICE_SUMMARY.md`
+- **Ejemplos Prácticos**: `SALES_SERVICE_EXAMPLES.md`
+- **Guía para Desarrolladores**: `DEVELOPER_GUIDE.md`
 
 ## 🤝 Contribución
 
@@ -288,4 +329,4 @@ Para soporte técnico o preguntas, contacta al equipo de desarrollo.
 
 ---
 
-**Desarrollado con ❤️ para la gestión eficiente de tickets de eventos**
+**Desarrollado con ❤️ para la gestión eficiente de ventas en arquitectura SOA**
