@@ -1,7 +1,14 @@
-# 🛒 SOA Sales Service - Resumen de Implementación
+# 🛒 SOA Sales Service - Documentación Completa
 
 ## 📋 Descripción General
 Servicio especializado en la gestión de ventas y sus detalles para una arquitectura SOA. Este servicio maneja únicamente las operaciones relacionadas con ventas, incluyendo la creación, actualización, consulta y eliminación de ventas y sus detalles asociados.
+
+## 🎯 Propósito del Servicio
+Este servicio es responsable de:
+- **Gestión de Ventas**: Crear, actualizar, consultar y eliminar ventas
+- **Gestión de Detalles**: Manejar los detalles específicos de cada venta
+- **Estadísticas**: Proporcionar métricas y reportes de ventas
+- **Integración SOA**: Servir como microservicio independiente para operaciones de ventas
 
 ## 🏗️ Arquitectura del Servicio
 
@@ -42,6 +49,45 @@ Servicio especializado en la gestión de ventas y sus detalles para una arquitec
 - **Swagger** (`src/config/swagger.ts`): Solo esquemas de ventas
 - **Servidor** (`src/server.ts`): Solo servicio de ventas
 
+## 🔄 Flujo de Trabajo del Servicio
+
+### 1. **Creación de Venta**
+```
+1. Cliente envía POST /api/sales con datos de venta y detalles
+2. Controller valida datos con CreateSaleDto
+3. Service procesa la lógica de negocio
+4. Repository crea la venta en la base de datos
+5. Repository crea los detalles de venta asociados
+6. Se retorna la venta completa con detalles
+```
+
+### 2. **Consulta de Ventas**
+```
+1. Cliente envía GET /api/sales con parámetros de paginación
+2. Controller procesa parámetros de consulta
+3. Service valida parámetros de paginación
+4. Repository ejecuta consulta con relaciones
+5. Se retorna lista paginada de ventas con detalles
+```
+
+### 3. **Actualización de Venta**
+```
+1. Cliente envía PUT /api/sales con datos actualizados
+2. Controller valida datos con UpdateSaleDto
+3. Service verifica existencia de la venta
+4. Repository actualiza la venta
+5. Se retorna la venta actualizada
+```
+
+### 4. **Gestión de Detalles**
+```
+1. Cliente envía PUT /api/sales/details para actualizar detalle
+2. Controller valida datos con UpdateSaleDetailDto
+3. Service verifica existencia del detalle
+4. Repository actualiza el detalle
+5. Se retorna el detalle actualizado
+```
+
 ## 🚀 Endpoints Disponibles
 
 ### Gestión de Ventas
@@ -69,6 +115,137 @@ GET    /api/sales/details/{id}       # Detalle por ID
 DELETE /api/sales/details/{id}/delete # Eliminar detalle (soft delete)
 ```
 
+## 📊 Casos de Uso Detallados
+
+### 1. **Crear una Nueva Venta**
+**Propósito**: Registrar una venta completa con múltiples detalles
+
+**Flujo**:
+1. El cliente (frontend/otro servicio) envía una solicitud POST
+2. Se incluyen datos de la venta y un array de detalles
+3. El servicio valida todos los datos
+4. Se crea la venta principal
+5. Se crean todos los detalles asociados
+6. Se retorna la venta completa con detalles
+
+**Ejemplo de Request**:
+```json
+{
+  "userId": 1,
+  "partnerId": 1,
+  "totalAmount": 150.00,
+  "saleDetails": [
+    {
+      "ticketId": 1,
+      "amount": 75.00
+    },
+    {
+      "ticketId": 2,
+      "amount": 75.00
+    }
+  ]
+}
+```
+
+**Ejemplo de Response**:
+```json
+{
+  "id": 1,
+  "userId": 1,
+  "partnerId": 1,
+  "totalAmount": 150.00,
+  "createdAt": "2024-01-01T10:00:00Z",
+  "updatedAt": "2024-01-01T10:00:00Z",
+  "isActive": true,
+  "deleted": false,
+  "saleDetails": [
+    {
+      "id": 1,
+      "saleId": 1,
+      "ticketId": 1,
+      "amount": 75.00,
+      "createdAt": "2024-01-01T10:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "saleId": 1,
+      "ticketId": 2,
+      "amount": 75.00,
+      "createdAt": "2024-01-01T10:00:00Z",
+      "isActive": true
+    }
+  ]
+}
+```
+
+### 2. **Consultar Ventas con Paginación**
+**Propósito**: Obtener lista paginada de ventas para interfaces de usuario
+
+**Flujo**:
+1. Cliente envía GET con parámetros page e items
+2. Servicio valida parámetros de paginación
+3. Repository ejecuta consulta con LIMIT y OFFSET
+4. Se retorna objeto con ventas y contador total
+
+**Ejemplo de Request**:
+```
+GET /api/sales?page=1&items=10
+```
+
+**Ejemplo de Response**:
+```json
+{
+  "sales": [
+    {
+      "id": 1,
+      "userId": 1,
+      "totalAmount": 150.00,
+      "createdAt": "2024-01-01T10:00:00Z",
+      "saleDetails": [...]
+    }
+  ],
+  "count": 25
+}
+```
+
+### 3. **Obtener Estadísticas de Ventas**
+**Propósito**: Proporcionar métricas para dashboards y reportes
+
+**Flujo**:
+1. Cliente envía GET /api/sales/statistics
+2. Repository ejecuta consultas agregadas
+3. Se calculan métricas en tiempo real
+4. Se retorna objeto con estadísticas
+
+**Ejemplo de Response**:
+```json
+{
+  "totalSales": 1000,
+  "activeSales": 950,
+  "totalRevenue": 50000.00,
+  "averageSaleAmount": 50.00
+}
+```
+
+### 4. **Actualizar Detalle de Venta**
+**Propósito**: Modificar información específica de un detalle
+
+**Flujo**:
+1. Cliente envía PUT /api/sales/details
+2. Se valida que el detalle existe
+3. Se actualizan los campos especificados
+4. Se retorna el detalle actualizado
+
+**Ejemplo de Request**:
+```json
+{
+  "id": 1,
+  "amount": 80.00,
+  "isActive": true
+}
+```
+
 ## 🔧 Características Técnicas
 
 ### Validaciones
@@ -89,7 +266,14 @@ DELETE /api/sales/details/{id}/delete # Eliminar detalle (soft delete)
 - ✅ Índices optimizados
 - ✅ Transacciones ACID
 
-## 📊 Ejemplos de Uso
+### Manejo de Errores
+```json
+{
+  "message": "Sale with ID 999 not found"
+}
+```
+
+## 📊 Ejemplos de Uso Prácticos
 
 ### 1. Crear una Venta
 ```bash
@@ -120,6 +304,16 @@ curl -X GET http://localhost:2226/api/sales/statistics
 ### 3. Obtener Ventas por Usuario
 ```bash
 curl -X GET http://localhost:2226/api/sales/user/1
+```
+
+### 4. Actualizar Detalle de Venta
+```bash
+curl -X PUT http://localhost:2226/api/sales/details \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 1,
+    "amount": 75.00
+  }'
 ```
 
 ## 🏥 Health Check
@@ -201,6 +395,18 @@ src/
 └── server.ts                         # Servidor principal
 ```
 
+## 🔄 Integración en Arquitectura SOA
+
+### Comunicación con Otros Servicios
+- **Servicio de Usuarios**: Referencia por `userId`
+- **Servicio de Partners**: Referencia por `partnerId`
+- **Servicio de Tickets**: Referencia por `ticketId` en detalles
+
+### Patrones de Integración
+- **Synchronous**: Para operaciones críticas
+- **Asynchronous**: Para notificaciones y eventos
+- **Event-Driven**: Para actualizaciones en tiempo real
+
 ## ✅ Estado de Implementación
 
 ### ✅ Completado
@@ -241,4 +447,11 @@ src/
 - **Puerto**: 2226
 - **URL Base**: `http://localhost:2226`
 - **Documentación**: `http://localhost:2226/api-docs`
-- **Health Check**: `http://localhost:2226/api/health` 
+- **Health Check**: `http://localhost:2226/api/health`
+
+### Próximos Pasos
+1. **Despliegue**: Configurar en entorno de producción
+2. **Monitoreo**: Implementar logs y métricas
+3. **Escalabilidad**: Configurar load balancing
+4. **Seguridad**: Implementar autenticación y autorización
+5. **Testing**: Ejecutar pruebas de integración 
