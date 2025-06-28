@@ -12,7 +12,7 @@ pnpm-debug.log
 # Archivos de compilación
 dist/
 build/
-
+.env
 
 # Logs
 *.log
