@@ -1,40 +1,46 @@
--- SOA Tickets Database Setup Script
+-- SOA Sales Database Setup Script
 -- Execute this script in your MySQL database
 
 -- Create database if it doesn't exist
-CREATE DATABASE IF NOT EXISTS soa_tickets;
-USE soa_tickets;
+CREATE DATABASE IF NOT EXISTS soa_sales;
+USE soa_sales;
 
--- Create tickets table
-CREATE TABLE IF NOT EXISTS `tbl_tickets` (
-  `ticket_id` int NOT NULL AUTO_INCREMENT,
-  `event_location_id` int DEFAULT NULL,
-  `code` varchar(255) DEFAULT NULL,
-  `used_at` datetime DEFAULT NULL,
-  `is_used` tinyint DEFAULT NULL,
+-- Create sales table
+CREATE TABLE IF NOT EXISTS `tbl_sales` (
+  `sale_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int DEFAULT NULL,
+  `partner_id` int DEFAULT NULL,
+  `total_amount` decimal(10,2) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_active` tinyint DEFAULT '1',
   `deleted` tinyint DEFAULT '0',
-  PRIMARY KEY (`ticket_id`),
-  KEY `event_location_id` (`event_location_id`),
-  CONSTRAINT `tbl_tickets_ibfk_1` FOREIGN KEY (`event_location_id`) REFERENCES `tbl_event_locations` (`event_location_id`)
+  PRIMARY KEY (`sale_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_partner_id` (`partner_id`),
+  KEY `idx_is_active` (`is_active`),
+  KEY `idx_deleted` (`deleted`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Create event locations table (if it doesn't exist)
-CREATE TABLE IF NOT EXISTS `tbl_event_locations` (
-  `event_location_id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `address` text,
-  `capacity` int DEFAULT NULL,
+-- Create sale details table
+CREATE TABLE IF NOT EXISTS `tbl_sale_details` (
+  `sale_detail_id` int NOT NULL AUTO_INCREMENT,
+  `sale_id` int DEFAULT NULL,
+  `ticket_id` int DEFAULT NULL,
+  `amount` decimal(10,2) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_active` tinyint DEFAULT '1',
   `deleted` tinyint DEFAULT '0',
-  PRIMARY KEY (`event_location_id`)
+  PRIMARY KEY (`sale_detail_id`),
+  KEY `fk_sale_details_sale` (`sale_id`),
+  KEY `idx_ticket_id` (`ticket_id`),
+  KEY `idx_is_active` (`is_active`),
+  KEY `idx_deleted` (`deleted`),
+  CONSTRAINT `fk_sale_details_sale` FOREIGN KEY (`sale_id`) REFERENCES `tbl_sales` (`sale_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Create users table (if it doesn't exist)
+-- Create users table (if it doesn't exist) - for reference
 CREATE TABLE IF NOT EXISTS `tbl_users` (
   `user_id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -47,28 +53,67 @@ CREATE TABLE IF NOT EXISTS `tbl_users` (
   UNIQUE KEY `uk_email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- Create partners table (if it doesn't exist) - for reference
+CREATE TABLE IF NOT EXISTS `tbl_partners` (
+  `partner_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_active` tinyint DEFAULT '1',
+  `deleted` tinyint DEFAULT '0',
+  PRIMARY KEY (`partner_id`),
+  UNIQUE KEY `uk_email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- Insert sample data
 INSERT INTO `tbl_users` (`name`, `email`) VALUES
 ('Juan Pérez', 'juan@example.com'),
 ('María García', 'maria@example.com'),
 ('Carlos López', 'carlos@example.com');
 
--- Insert sample event location
-INSERT INTO `tbl_event_locations` (`name`, `address`, `capacity`) VALUES
-('Estadio Principal', 'Av. Principal 123, Ciudad', 50000),
-('Teatro Municipal', 'Calle Teatro 456, Centro', 1000),
-('Arena Deportiva', 'Boulevard Deportivo 789, Norte', 15000);
+INSERT INTO `tbl_partners` (`name`, `email`) VALUES
+('Eventos ABC', 'info@eventosabc.com'),
+('Producciones XYZ', 'contacto@produccionesxyz.com'),
+('Show Center', 'ventas@showcenter.com');
+
+-- Insert sample sales
+INSERT INTO `tbl_sales` (`user_id`, `partner_id`, `total_amount`) VALUES
+(1, 1, 150.00),
+(2, 2, 200.00),
+(3, 3, 300.00);
+
+-- Insert sample sale details
+INSERT INTO `tbl_sale_details` (`sale_id`, `ticket_id`, `amount`) VALUES
+(1, 101, 75.00),
+(1, 102, 75.00),
+(2, 201, 100.00),
+(2, 202, 100.00),
+(3, 301, 150.00),
+(3, 302, 150.00);
 
 -- Create indexes for better performance
-CREATE INDEX idx_tickets_code ON tbl_tickets(code);
-CREATE INDEX idx_tickets_event_location ON tbl_tickets(event_location_id);
-CREATE INDEX idx_tickets_is_used ON tbl_tickets(is_used);
-CREATE INDEX idx_tickets_is_active ON tbl_tickets(is_active);
-CREATE INDEX idx_tickets_deleted ON tbl_tickets(deleted);
+CREATE INDEX idx_sales_user_id ON tbl_sales(user_id);
+CREATE INDEX idx_sales_partner_id ON tbl_sales(partner_id);
+CREATE INDEX idx_sales_total_amount ON tbl_sales(total_amount);
+CREATE INDEX idx_sales_created_at ON tbl_sales(created_at);
+
+CREATE INDEX idx_sale_details_sale_id ON tbl_sale_details(sale_id);
+CREATE INDEX idx_sale_details_ticket_id ON tbl_sale_details(ticket_id);
+CREATE INDEX idx_sale_details_amount ON tbl_sale_details(amount);
 
 -- Show table structure
-DESCRIBE tbl_tickets;
-DESCRIBE tbl_event_locations;
+DESCRIBE tbl_sales;
+DESCRIBE tbl_sale_details;
 
 -- Show sample data
-SELECT * FROM tbl_event_locations; 
+SELECT 
+  s.sale_id,
+  s.user_id,
+  s.partner_id,
+  s.total_amount,
+  s.created_at,
+  COUNT(sd.sale_detail_id) as detail_count
+FROM tbl_sales s
+LEFT JOIN tbl_sale_details sd ON s.sale_id = sd.sale_id
+GROUP BY s.sale_id; 

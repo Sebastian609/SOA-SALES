@@ -1,15 +1,13 @@
-import { Expose } from "class-transformer";
+import "reflect-metadata";
+import { Expose, Type } from "class-transformer";
 import {
   IsNotEmpty,
-  IsString,
   IsNumber,
   IsOptional,
   IsBoolean,
-  IsDateString,
   IsArray,
   ValidateNested,
 } from "class-validator";
-import { Type } from "class-transformer";
 
 export class CreateSaleDetailDto {
   @IsOptional()

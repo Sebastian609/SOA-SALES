@@ -31,9 +31,9 @@ services:
       DB_USERNAME: tickets_user
       DB_PASSWORD: tickets_password
       DB_NAME: soa_tickets
-      SWAGGER_SERVER_URL: http://localhost:2225/api
+      SWAGGER_SERVER_URL: http://localhost:2226/api
     ports:
-      - "2225:2225"
+      - "2226:2226"
     depends_on:
       - mysql
     volumes:

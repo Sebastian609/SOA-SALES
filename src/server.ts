@@ -20,6 +20,11 @@ const salesRepository = new SalesRepository(
   AppDataSource.getRepository(SaleDetail)
 );
 const salesService = new SalesService(salesRepository);
+import cors from "cors";
+
+app.use(cors({
+  origin: "*"
+}));
 
 // Initialize sales controller and routes
 const salesController = new SalesController(salesService);
